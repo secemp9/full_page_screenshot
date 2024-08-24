@@ -2,8 +2,10 @@ import argparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
-import time
 
 def take_full_page_screenshot(url, output_file):
     # Setup Chrome options
@@ -21,8 +23,11 @@ def take_full_page_screenshot(url, output_file):
         # Open the webpage
         driver.get(url)
 
-        # Give the page some time to fully load
-        time.sleep(2)  # Adjust if necessary
+        # Wait until the page is fully loaded
+        wait = WebDriverWait(driver, 10)
+        # Wait for the body to be present and have a scroll height (indicating the page has loaded)
+        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
         # Set the window size to the full page height
         total_height = driver.execute_script("return document.body.scrollHeight")
@@ -41,7 +46,7 @@ def main():
     parser = argparse.ArgumentParser(description="Take a full-page screenshot of a webpage.")
     parser.add_argument("url", help="The URL of the webpage to capture.")
     parser.add_argument("output_file", help="The filename to save the screenshot as.")
-    
+
     args = parser.parse_args()
 
     # Take the screenshot
